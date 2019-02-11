@@ -15,8 +15,12 @@ __HEADER = """
 """
 __AUTHOR = "Tianshu Huang"
 __HINT = """
-Usage: python transpile.py <target_file> <output_file> <header>
+Usage
+-----
+python transpile.py <target_file> <output_file> <options>
 
+Parameters
+----------
 target_file:
     Target file to transpile. The transpiler will follow #includes as
     appropriate. If a .h file is included, the corresponding .c file will
@@ -24,10 +28,24 @@ target_file:
 output_file:
     Target file to save to. If no output file is specified, the output will
     be sent to stdout.
-header:
+options:
+    See below.
+
+Options
+-------
+header=<header_file_name>:
     Header to place at the top of the document. This file should contain
     any comment headers, as well as #defines that specify configuration
     options. If no header is specified, __header__.c is used if present.
+name=<project_name>:
+    Project name; is placed at the top of the file in a comment. Alternatively,
+    use
+        #define __NAME__ "This is the project name"
+    to set the project name
+author="<author_name>"
+    Project author; placed at the top of the file under the project name. Can
+    also be placed in a #define:
+        #define __AUTHOR__ "Author Name (Author EID) | Coauthor Name"
 """
 
 
@@ -220,6 +238,17 @@ def make_c(base_dir, user_includes):
         "\n" + header)
 
 
+def find_define(s, dname):
+
+    dvalue = re.findall(r'#define ' + dname + ' "(.*)"\n', s)
+    if len(dvalue) == 0:
+        dvalue = ""
+    else:
+        dvalue = dvalue[0]
+
+    return dvalue
+
+
 if __name__ == "__main__":
 
     print(__HEADER, RED, BOLD)
@@ -243,9 +272,23 @@ if __name__ == "__main__":
     print("User files [{i}]:".format(i=len(usr)))
     print("    " + ", ".join(usr))
 
-    output.write(make_includes(std))
-    output.write(make_header(base_dir, usr))
-    output.write(make_c(base_dir, usr + [sys.argv[1]]))
+    content = (
+        make_includes(std) +
+        make_header(base_dir, usr) +
+        make_c(base_dir, usr + [sys.argv[1]]))
+
+    author = find_define(content, "__AUTHOR__")
+    name = find_define(content, "__NAME__")
+
+    title = putil.join(
+        "/* \n * \n * \n * \n *",
+        putil.clear_fmt(render(name, SLANT)))
+
+    content = (
+        "\n".join(title.split("\n")[:-1]) +
+        "\n * " + author + "\n */\n" + content)
+
+    output.write(content)
     print(
         "Transpiled {i} files to {o}".format(
             i=len(std) + len(usr),
