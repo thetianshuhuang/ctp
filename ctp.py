@@ -7,7 +7,7 @@
 
 Usage
 -----
-python transpile.py <target_file> <output_file> <options>
+python transpile.py <target_file> <output_file>
 
 Parameters
 ----------
@@ -53,7 +53,7 @@ __AUTHOR = "Tianshu Huang"
 __HINT = """
 Usage
 -----
-python transpile.py <target_file> <output_file> <options>
+python transpile.py <target_file> <output_file>
 
 Parameters
 ----------
