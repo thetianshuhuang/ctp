@@ -1,52 +1,8 @@
+"""Transpiler utilities"""
 
-from print import *
-import os
-import sys
 import re
-
-
-__HEADER = """
-     _                         _ _
-    | |_ _ _ __ _ _ _  ____ __(_) |___
-    |  _| '_/ _` | ' \(_-< '_ \ | / -_)
-     \__|_| \__,_|_||_/__/ .__/_|_\___|
-    Transpiler for C    |_|       v1.0
-
-"""
-__AUTHOR = "Tianshu Huang"
-__HINT = """
-Usage
------
-python transpile.py <target_file> <output_file> <options>
-
-Parameters
-----------
-target_file:
-    Target file to transpile. The transpiler will follow #includes as
-    appropriate. If a .h file is included, the corresponding .c file will
-    be as well (if it exists).
-output_file:
-    Target file to save to. If no output file is specified, the output will
-    be sent to stdout.
-options:
-    See below.
-
-Options
--------
-header=<header_file_name>:
-    Header to place at the top of the document. This file should contain
-    any comment headers, as well as #defines that specify configuration
-    options. If no header is specified, __header__.c is used if present.
-name=<project_name>:
-    Project name; is placed at the top of the file in a comment. Alternatively,
-    use
-        #define __NAME__ "This is the project name"
-    to set the project name
-author="<author_name>"
-    Project author; placed at the top of the file under the project name. Can
-    also be placed in a #define:
-        #define __AUTHOR__ "Author Name (Author EID) | Coauthor Name"
-"""
+import os
+from print import *
 
 
 def get_file_includes(filename):
@@ -177,7 +133,7 @@ def get_contents(filelist):
                 content += "".join(lines)
         else:
             print(
-                "// [Warning] File {name} does not exist"
+                "[Warning] File {name} does not exist"
                 .format(name=filename), BR + YELLOW)
 
     return content
@@ -239,61 +195,23 @@ def make_c(base_dir, user_includes):
 
 
 def find_define(s, dname):
+    """Find a specified #define value
+
+    Parameters
+    ----------
+    s : str
+        Input string
+    dname : str
+        Define name to find
+
+    Returns
+    -------
+    str or None
+        Value of #defined string; if not found, returns None
+    """
 
     dvalue = re.findall(r'#define ' + dname + ' "(.*)"\n', s)
     if len(dvalue) == 0:
-        dvalue = ""
+        return None
     else:
-        dvalue = dvalue[0]
-
-    return dvalue
-
-
-if __name__ == "__main__":
-
-    print(__HEADER, RED, BOLD)
-
-    if len(sys.argv) < 2:
-        print(__HINT)
-        exit()
-
-    target = sys.argv[1]
-    base_dir = os.path.dirname(target)
-
-    if len(sys.argv) >= 3:
-        output = open(sys.argv[2], "w")
-    else:
-        output = sys.stdout
-
-    std, usr = get_includes(target)
-
-    print("libc includes [{i}]:".format(i=len(std)))
-    print("    " + ", ".join(std))
-    print("User files [{i}]:".format(i=len(usr)))
-    print("    " + ", ".join(usr))
-
-    content = (
-        make_includes(std) +
-        make_header(base_dir, usr) +
-        make_c(base_dir, usr + [sys.argv[1]]))
-
-    author = find_define(content, "__AUTHOR__")
-    name = find_define(content, "__NAME__")
-
-    title = putil.join(
-        "/* \n * \n * \n * \n *",
-        putil.clear_fmt(render(name, SLANT)))
-
-    content = (
-        "\n".join(title.split("\n")[:-1]) +
-        "\n * " + author + "\n */\n" + content)
-
-    output.write(content)
-    print(
-        "Transpiled {i} files to {o}".format(
-            i=len(std) + len(usr),
-            o="sys.stdout" if len(sys.argv) < 3 else sys.argv[2]),
-        BR + GREEN, BOLD)
-
-    if len(sys.argv) >= 2:
-        output.close()
+        return dvalue[0]
