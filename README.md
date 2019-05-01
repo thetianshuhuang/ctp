@@ -25,3 +25,8 @@ Configuration options are specified in the code using special #defines.
 - ```#define __NAME__ "Project name"```: Project name; is placed at the top of the output file as a large ascii art comment.
 - ```#define __AUTHOR__ "Author name[s]```: Project author; placed just under the name.
 - ```#include "__header__.h"```, ```__header__.h```: If any file contains ```#include "__header__.h"```, the ```__header__.h``` file is loaded and placed at the top of the output file instead of the ```__AUTHOR__``` and ```__NAME__```.
+
+
+## In progress: macroset
+
+- ```#load "filename"```: drop-in 'filename' into the file.

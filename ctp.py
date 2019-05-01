@@ -129,12 +129,14 @@ if __name__ == "__main__":
         print(__HINT)
         exit()
 
-    target = sys.argv[1]
+    args = [arg for arg in sys.argv if arg[0] != '-']
+
+    target = args[1]
     base_dir = os.path.dirname(target)
 
     # Get file
-    if len(sys.argv) >= 3:
-        output = open(sys.argv[2], "w")
+    if len(args) >= 3:
+        output = open(args[2], "w")
     else:
         output = sys.stdout
 
@@ -153,7 +155,7 @@ if __name__ == "__main__":
     content = (
         make_includes(std) +
         make_header(base_dir, usr) +
-        make_c(base_dir, usr + [sys.argv[1]]))
+        make_c(base_dir, usr + [args[1]]))
 
     if title is None:
         title = make_title(content)
@@ -163,8 +165,12 @@ if __name__ == "__main__":
     print(
         "Transpiled {i} files to {o}.".format(
             i=len(std) + len(usr),
-            o="sys.stdout" if len(sys.argv) < 3 else sys.argv[2]),
+            o="sys.stdout" if len(args) < 3 else args[2]),
         BOLD)
 
-    if len(sys.argv) >= 2:
+    if len(args) >= 2:
         output.close()
+
+        if argparse.is_flag('c'):
+            import subprocess
+            subprocess.call(["gcc", args[2]])

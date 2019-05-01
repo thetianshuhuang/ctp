@@ -57,20 +57,23 @@ def get_includes(base_file):
     while len(file_stack) > 0:
 
         target = file_stack.pop()
-        std_add, user_add = get_file_includes(os.path.join(base_dir, target))
+        if target != "__header__.h":
 
-        # Handle .c files
-        if os.path.isfile(os.path.join(base_dir, target[:-2] + '.c')):
-            std_add_c, user_add_c = get_file_includes(
-                os.path.join(base_dir, target[:-2] + '.c'))
-            std_add += std_add_c
-            user_add += user_add_c
+            std_add, user_add = get_file_includes(
+                os.path.join(base_dir, target))
 
-        std_includes = list(set(std_includes + std_add))
-        for f in user_add:
-            if f not in file_stack and f not in user_includes:
-                user_includes.append(f)
-                file_stack.append(f)
+            # Handle .c files
+            if os.path.isfile(os.path.join(base_dir, target[:-2] + '.c')):
+                std_add_c, user_add_c = get_file_includes(
+                    os.path.join(base_dir, target[:-2] + '.c'))
+                std_add += std_add_c
+                user_add += user_add_c
+
+            std_includes = list(set(std_includes + std_add))
+            for f in user_add:
+                if f not in file_stack and f not in user_includes:
+                    user_includes.append(f)
+                    file_stack.append(f)
 
     return std_includes, user_includes
 
@@ -156,7 +159,9 @@ def make_header(base_dir, user_includes):
     """
 
     header = get_contents([
-        os.path.join(base_dir, h_name) for h_name in user_includes])
+        os.path.join(base_dir, h_name)
+        for h_name in user_includes
+        if h_name[-2:] == '.h'])
 
     return (
         "\n\n" +
